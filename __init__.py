@@ -4,7 +4,7 @@ import jack, binascii, struct
 
 class JackMidiMonitor:
 
-	hexdump		= True
+	hexdump		= False
 
 	__client	= None
 	__in_port	= None
@@ -283,11 +283,22 @@ class JackMidiMonitor:
 
 
 
-if __name__ == "__main__":
+def main():
+	import argparse
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--auto-connect', '-a', action='store_true')
+	parser.add_argument('--hexdump', '-x', action='store_true')
+	options = parser.parse_args()
+
 	with JackMidiMonitor() as mon:
-		mon.hexdump = False
-		mon.auto_connect()
+		if options.hexdump:
+			mon.hexdump = True
+		if options.auto_connect:
+			mon.auto_connect()
 		print('#' * 80)
 		print('press Return to quit')
 		print('#' * 80)
 		input()
+
+
+
