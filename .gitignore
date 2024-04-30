@@ -1,0 +1,7 @@
+*.pyc
+*.log
+*.sf2dump
+__pycache__
+temp
+temp.*
+debug.*
