@@ -180,15 +180,18 @@ class JackMidiMonitor:
 
 
 	def __note_off(self, vals):
-		print(' %02d  OFF  %-3s %03d (0x%2x)' % (
+		print(' %02x  %02d  OFF  %-3s %03d (0x%02x)' % (
+			vals[0],
 			vals[0] & 0xF,
 			self.__note_names[vals[1]],
 			vals[1],
 			vals[1]
 		))
+
 
 	def __note_on(self, vals):
-		print(' %02d  ON   %-3s %03d (0x%2x) velo %03d (0x%2x)' % (
+		print(' %02x  %02d  ON   %-3s %03d (0x%02x) velo %03d (0x%02x)' % (
+			vals[0],
 			vals[0] & 0xF,
 			self.__note_names[vals[1]],
 			vals[1],
@@ -196,9 +199,11 @@ class JackMidiMonitor:
 			vals[2],
 			vals[2]
 		))
+
 
 	def __poly_pressure(self, vals):
-		print(' %02d  POLY %-3s %03d (0x%2x) pres %03d (0x%2x)' % (
+		print(' %02x  %02d  POLY %-3s %03d (0x%02x) pres %03d (0x%02x)' % (
+			vals[0],
 			vals[0] & 0xF,
 			self.__note_names[vals[1]],
 			vals[1],
@@ -207,37 +212,46 @@ class JackMidiMonitor:
 			vals[2]
 		))
 
+
 	def __control_change(self, vals):
-		print(' %02d  CC       %03d (0x%2x)  val %03d (0x%2x)' % (
+		print(' %02x  %02d  CC       %03d (0x%02x)  val %03d (0x%02x)' % (
+			vals[0],
 			vals[0] & 0xF,
 			vals[1],
 			vals[1],
 			vals[2],
 			vals[2]
 		))
+
 
 	def __program_change(self, vals):
-		print(' %02d  PROG     %03d (0x%2x)' % (
+		print(' %02x  %02d  PROG     %03d (0x%02x)' % (
+			vals[0],
 			vals[0] & 0xF,
 			vals[1],
 			vals[1]
 		))
+
 
 	def __channel_pressure(self, vals):
-		print(' %02d  PRES     %03d (0x%2x)' % (
+		print(' %02x  %02d  PRES     %03d (0x%02x)' % (
+			vals[0],
 			vals[0] & 0xF,
 			vals[1],
 			vals[1]
 		))
 
+
 	def __pitch_bend(self, vals):
-		print(' %02d  BEND msb %03d (0x%2x)  lsb %03d (0x%2x)' % (
+		print(' %02x  %02d  BEND msb %03d (0x%02x)  lsb %03d (0x%02x)' % (
+			vals[0],
 			vals[0] & 0xF,
 			vals[1],
 			vals[1],
 			vals[2],
 			vals[2]
 		))
+
 
 	def auto_connect(self):
 		for p in self.__client.get_ports():
@@ -252,16 +266,13 @@ class JackMidiMonitor:
 
 	def __process(self, frames):
 		for offset, indata in self.__in_port.incoming_midi_events():
+			inbytes = struct.unpack(str(len(indata)) + 'B', indata)
 			if self.hexdump:
-				self.__hex_dump(indata)
+				print(" ".join([ ("%x" % val) for val in inbytes ]))
 			else:
-				vals = [ int(b) for b in struct.unpack('3B', indata) ]
+				vals = [ int(b) for b in inbytes ]
 				opcode = vals[0] >> 4
 				self.__decoders[opcode](vals)
-
-
-	def __hex_dump(self, indata):
-		print(" ".join([ ("%x" % val) for val in struct.unpack('3B', indata) ]))
 
 
 	def __print_event(self, last_frame_time, offset, status, pitch, velocity):
