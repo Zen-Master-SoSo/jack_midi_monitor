@@ -4,8 +4,6 @@ import jack, binascii, struct
 
 class JackMidiMonitor:
 
-	hexdump		= False
-
 	__client	= None
 	__in_port	= None
 	__out_port	= None
@@ -143,7 +141,8 @@ class JackMidiMonitor:
 
 
 
-	def __init__(self):
+	def __init__(self, hexdump=False):
+		self.__print_function = self.__print_hex if hexdump else self.__print_pretty
 		self.__client = jack.Client(self.__class__.__name__, no_start_server=True)
 		self.__in_port = self.__client.midi_inports.register('input')
 		self.__client.set_process_callback(self.__process)
@@ -179,76 +178,51 @@ class JackMidiMonitor:
 		}
 
 
-	def __note_off(self, vals):
-		print(' %02x  %02d  OFF  %-3s %03d (0x%02x)' % (
-			vals[0],
-			vals[0] & 0xF,
-			self.__note_names[vals[1]],
-			vals[1],
-			vals[1]
-		))
-
-
 	def __note_on(self, vals):
-		print(' %02x  %02d  ON   %-3s %03d (0x%02x) velo %03d (0x%02x)' % (
-			vals[0],
-			vals[0] & 0xF,
+		print('ON %-3s %-3d velo %d' % (
 			self.__note_names[vals[1]],
 			vals[1],
-			vals[1],
-			vals[2],
 			vals[2]
 		))
 
 
+	def __note_off(self, vals):
+		print('OFF %-3s %03d' % (
+			self.__note_names[vals[1]],
+			vals[1]
+		))
+
+
 	def __poly_pressure(self, vals):
-		print(' %02x  %02d  POLY %-3s %03d (0x%02x) pres %03d (0x%02x)' % (
-			vals[0],
-			vals[0] & 0xF,
+		print('POLY   %-3s %d  pres %d' % (
 			self.__note_names[vals[1]],
 			vals[1],
-			vals[1],
-			vals[2],
 			vals[2]
 		))
 
 
 	def __control_change(self, vals):
-		print(' %02x  %02d  CC       %03d (0x%02x)  val %03d (0x%02x)' % (
-			vals[0],
-			vals[0] & 0xF,
+		print('CC_%-3d %d' % (
 			vals[1],
-			vals[1],
-			vals[2],
 			vals[2]
 		))
 
 
 	def __program_change(self, vals):
-		print(' %02x  %02d  PROG     %03d (0x%02x)' % (
-			vals[0],
-			vals[0] & 0xF,
-			vals[1],
+		print('PROG   %d' % (
 			vals[1]
 		))
 
 
 	def __channel_pressure(self, vals):
-		print(' %02x  %02d  PRES     %03d (0x%02x)' % (
-			vals[0],
-			vals[0] & 0xF,
-			vals[1],
+		print('PRES   %d' % (
 			vals[1]
 		))
 
 
 	def __pitch_bend(self, vals):
-		print(' %02x  %02d  BEND msb %03d (0x%02x)  lsb %03d (0x%02x)' % (
-			vals[0],
-			vals[0] & 0xF,
+		print('BEND   msb %d lsb %d' % (
 			vals[1],
-			vals[1],
-			vals[2],
 			vals[2]
 		))
 
@@ -267,17 +241,20 @@ class JackMidiMonitor:
 	def __process(self, frames):
 		for offset, indata in self.__in_port.incoming_midi_events():
 			inbytes = struct.unpack(str(len(indata)) + 'B', indata)
-			if self.hexdump:
-				print(" ".join([ ("%x" % val) for val in inbytes ]))
-			else:
-				vals = [ int(b) for b in inbytes ]
-				opcode = vals[0] >> 4
-				self.__decoders[opcode](vals)
+			self.__print_function(inbytes)
 
 
-	def __print_event(self, last_frame_time, offset, status, pitch, velocity):
-		time = last_frame_time + offset
-		print(last_frame_time, offset, status, pitch, velocity)
+	def __print_hex(self, inbytes):
+		print(" ".join([ ("%x" % val) for val in inbytes ]))
+
+
+	def __print_pretty(self, inbytes):
+		for i in range(3):
+			print(('%02X ' % inbytes[i]) if i < len(inbytes) else '   ', end='')
+		print('  ', end='')
+		vals = [ int(b) for b in inbytes ]
+		opcode = vals[0] >> 4
+		self.__decoders[opcode](vals)
 
 
 	def __enter__(self):
@@ -301,9 +278,7 @@ def main():
 	parser.add_argument('--hexdump', '-x', action='store_true')
 	options = parser.parse_args()
 
-	with JackMidiMonitor() as mon:
-		if options.hexdump:
-			mon.hexdump = True
+	with JackMidiMonitor(options.hexdump) as mon:
 		if options.auto_connect:
 			mon.auto_connect()
 		print('#' * 80)
