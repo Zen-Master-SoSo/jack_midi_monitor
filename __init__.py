@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import jack, binascii, struct
+import jack, struct
 
 
 class JackMidiMonitor:
