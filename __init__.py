@@ -228,14 +228,13 @@ class JackMidiMonitor:
 
 
 	def auto_connect(self):
-		for p in self.__client.get_ports():
-			if p.is_output and p.is_midi and p.name.lower().find('through') < 0:
-				print(f"Connecting to {p.name}");
-				try:
-					self.__in_port.connect(p.name)
-					break
-				except Exception as e:
-					print(e)
+		for p in self.__client.get_ports(is_midi=True, is_output=True, is_terminal=True):
+			print(f"Connecting to {p.name}");
+			try:
+				self.__in_port.connect(p.name)
+				break
+			except Exception as e:
+				print(e)
 
 
 	def __process(self, frames):
