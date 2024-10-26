@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import jack, struct
+from jack_midi_kbd import JackMidiKeyboard
 
 
 class JackMidiMonitor:
@@ -143,12 +144,22 @@ class JackMidiMonitor:
 
 	def __init__(self, hexdump=False):
 		self.__print_function = self.__print_hex if hexdump else self.__print_pretty
-		self.__client = jack.Client(self.__class__.__name__, no_start_server=True)
-		self.__in_port = self.__client.midi_inports.register('input')
-		self.__client.set_process_callback(self.__process)
-		self.__client.activate()
-		self.__client.get_ports()
+		self._midi_keyboad = JackMidiKeyboard(True)
+		self._midi_keyboad.on_midi_event(self.midi_keyboad_event)
+		self.__decoders = {
+			0x8: self.__note_off,
+			0x9: self.__note_on,
+			0xA: self.__poly_pressure,
+			0xB: self.__control_change,
+			0xC: self.__program_change,
+			0xD: self.__channel_pressure,
+			0xE: self.__pitch_bend
+		}
+
+
+	def midi_keyboad_event(self, last_frame_time, offset, status, val_1, val_2):
 		"""
+		------------ MIDI CHEAT SHEET -------------
 		8n,x1,x2 - Note Off (x1 = note number, x2 = velocity).
 		9n,x1,x2 - Note On  (x1 = note number, x2 = velocity [x2=0 -> note off]).
 		An,x1,x2 - Poly Pressure (x1 = note number, x2 = pressure value).
@@ -167,93 +178,62 @@ class JackMidiMonitor:
 		Dn,x1    - Channel (Mono) Pressure (x1 = value).
 		En,x1,x2 - Pitch Bend (x1 = LSB, x2 = MSB).  Value = (MSB * 128) + LSB
 		"""
-		self.__decoders = {
-			0x8: self.__note_off,
-			0x9: self.__note_on,
-			0xA: self.__poly_pressure,
-			0xB: self.__control_change,
-			0xC: self.__program_change,
-			0xD: self.__channel_pressure,
-			0xE: self.__pitch_bend
-		}
+		self.__print_function(status, val_1, val_2)
 
 
-	def __note_on(self, vals):
-		print('ON %-3s %-3d velo %d' % (
-			self.__note_names[vals[1]],
-			vals[1],
-			vals[2]
+	def __print_pretty(self, status, val_1, val_2):
+		if val_2 is None:
+			print(('%02X %02X    : ' % (status, val_1, val_2)), end='')
+		else:
+			print(('%02X %02X %02X : ' % (status, val_1, val_2)), end='')
+		opcode = status >> 4
+		self.__decoders[opcode](status, val_1, val_2)
+
+
+	def __note_on(self, status, val_1, val_2):
+		print('ON  %-3s %3d v. %-3d' % (
+			self.__note_names[val_1],
+			val_1,
+			val_2
 		))
 
 
-	def __note_off(self, vals):
-		print('OFF %-3s %03d' % (
-			self.__note_names[vals[1]],
-			vals[1]
+	def __note_off(self, status, val_1, val_2):
+		print('OFF %-3s %3d' % (
+			self.__note_names[val_1],
+			val_1
 		))
 
 
-	def __poly_pressure(self, vals):
+	def __poly_pressure(self, status, val_1, val_2):
 		print('POLY   %-3s %d  pres %d' % (
-			self.__note_names[vals[1]],
-			vals[1],
-			vals[2]
+			self.__note_names[val_1],
+			val_1,
+			val_2
 		))
 
 
-	def __control_change(self, vals):
-		print('CC_%-3d %d' % (
-			vals[1],
-			vals[2]
-		))
+	def __control_change(self, status, val_1, val_2):
+		print('CC_%-3d %d' % (val_1, val_2))
 
 
-	def __program_change(self, vals):
-		print('PROG   %d' % (
-			vals[1]
-		))
+	def __program_change(self, status, val_1, val_2):
+		print('PROG   %d' % (val_1))
 
 
-	def __channel_pressure(self, vals):
-		print('PRES   %d' % (
-			vals[1]
-		))
+	def __channel_pressure(self, status, val_1, val_2):
+		print('PRES   %d' % (val_1))
 
 
-	def __pitch_bend(self, vals):
-		print('BEND   msb %d lsb %d' % (
-			vals[1],
-			vals[2]
-		))
+	def __pitch_bend(self, status, val_1, val_2):
+		print('BEND   msb %d lsb %d' % (val_1, val_2))
 
 
-	def auto_connect(self):
-		for p in self.__client.get_ports(is_midi=True, is_output=True, is_terminal=True):
-			print(f"Connecting to {p.name}");
-			try:
-				self.__in_port.connect(p.name)
-				break
-			except Exception as e:
-				print(e)
-
-
-	def __process(self, frames):
-		for offset, indata in self.__in_port.incoming_midi_events():
-			inbytes = struct.unpack(str(len(indata)) + 'B', indata)
-			self.__print_function(inbytes)
-
-
-	def __print_hex(self, inbytes):
-		print(" ".join([ ("%x" % val) for val in inbytes ]))
-
-
-	def __print_pretty(self, inbytes):
-		for i in range(3):
-			print(('%02X ' % inbytes[i]) if i < len(inbytes) else '   ', end='')
-		print('  ', end='')
-		vals = [ int(b) for b in inbytes ]
-		opcode = vals[0] >> 4
-		self.__decoders[opcode](vals)
+	def __print_hex(self, status, val_1, val_2):
+		if val_2 is None:
+			print('%02X %02X' % (status, val_1, val_2))
+		else:
+			print('%02X %02X %02X' % (status, val_1, val_2))
 
 
 	def __enter__(self):
@@ -261,12 +241,7 @@ class JackMidiMonitor:
 
 
 	def __exit__(self, exc_type, exc_value, traceback):
-		self.close()
-
-
-	def close(self):
-		self.__client.deactivate()
-		self.__client.close()
+		pass
 
 
 
