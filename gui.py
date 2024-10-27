@@ -75,14 +75,8 @@ class MainWindow(QDialog):
 
 
 if __name__ == "__main__":
-	import sys
-	from PyQt5.QtWidgets import QApplication
-	log_format = "[%(filename)24s:%(lineno)3d] %(levelname)-8s %(message)s"
-	logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=log_format)
-	app = QApplication([])
-	window = MainWindow()
-	window.show()
-	sys.exit(app.exec())
+	from jack_midi_monitor import show_gui
+	show_gui()
 
 
 # -------- end file

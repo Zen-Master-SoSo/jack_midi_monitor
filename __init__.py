@@ -243,8 +243,17 @@ class JackMidiMonitor:
 		pass
 
 
+def show_gui():
+	import sys
+	from PyQt5.QtWidgets import QApplication
+	from jack_midi_monitor.gui import MainWindow
+	app = QApplication([])
+	window = MainWindow()
+	window.show()
+	sys.exit(app.exec())
 
-def main():
+
+if __name__ == "__main__":
 	import argparse
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--auto-connect', '-a', action='store_true')
@@ -258,6 +267,5 @@ def main():
 		print('press Return to quit')
 		print('#' * 80)
 		input()
-
 
 

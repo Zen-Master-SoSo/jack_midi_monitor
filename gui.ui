@@ -17,7 +17,7 @@
    <item>
     <widget class="QLabel" name="l_note_name">
      <property name="text">
-      <string>C4</string>
+      <string/>
      </property>
      <property name="textFormat">
       <enum>Qt::PlainText</enum>
@@ -30,7 +30,7 @@
    <item>
     <widget class="QLabel" name="l_note_number">
      <property name="text">
-      <string>60</string>
+      <string/>
      </property>
      <property name="textFormat">
       <enum>Qt::PlainText</enum>
@@ -43,7 +43,7 @@
    <item>
     <widget class="QLabel" name="l_velocity">
      <property name="text">
-      <string>120</string>
+      <string/>
      </property>
      <property name="textFormat">
       <enum>Qt::PlainText</enum>
