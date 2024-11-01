@@ -5,26 +5,9 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QResizeEvent
 from PyQt5.QtWidgets import QDialog
 
+from qt_extras import ShutUpQT
 from jack_midi_monitor import NOTE_NAMES
 from jack_midi_kbd import JackMidiKeyboard
-
-
-class ShutUpQT(object):
-	"""
-	A context manager for temporarily supressing DEBUG level messages.
-	Primarily used when loading a Qt graphical user interface using uic.
-	"""
-
-	def __init__(self, level=logging.ERROR):
-		self.level = level
-
-	def __enter__(self):
-		self.root = logging.getLogger()
-		self.previous_log_level = self.root.getEffectiveLevel()
-		self.root.setLevel(self.level)
-
-	def __exit__(self, *_):
-		self.root.setLevel(self.previous_log_level)	# Carry on ...
 
 
 class MainWindow(QDialog):
