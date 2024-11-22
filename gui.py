@@ -1,24 +1,26 @@
-import os, logging
-
+#  jack_midi_monitor/gui.py
+#
+#  Copyright 2024 liyang <liyang@veronica>
+#
+import os
 from PyQt5 import uic
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QResizeEvent
 from PyQt5.QtWidgets import QDialog
-
 from qt_extras import ShutUpQT
-from jack_midi_monitor import NOTE_NAMES
-from jack_midi_kbd import JackMidiKeyboard
+from jack_midi_monitor import JackMidiMonitor
+from midi_notes import NOTE_NAMES
 
 
 class MainWindow(QDialog):
 
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
+	def __init__(self):
+		super().__init__()
 		my_dir = os.path.split(os.path.abspath(__file__))[0]
 		with ShutUpQT():
-			uic.loadUi(os.path.join(my_dir, 'gui.ui'), self)
-		self._midi_keyboad = JackMidiKeyboard(True)
-		self._midi_keyboad.on_midi_event(self.midi_keyboad_event)
+			uic.loadUi(os.path.join(my_dir, 'res', 'gui.ui'), self)
+		self.monitor = JackMidiMonitor()
+		self.monitor.on_midi_event(self.midi_event)
 		self.__decoders = {
 			0x8: self.__note_off,
 			0x9: self.__note_on,
@@ -29,7 +31,7 @@ class MainWindow(QDialog):
 			0xE: self.__no_op
 		}
 
-	def midi_keyboad_event(self, last_frame_time, offset, status, val_1, val_2):
+	def midi_event(self, last_frame_time, offset, status, val_1, val_2):
 		opcode = status >> 4
 		self.__decoders[opcode](status, val_1, val_2)
 
@@ -62,4 +64,4 @@ if __name__ == "__main__":
 	show_gui()
 
 
-# -------- end file
+#  end jack_midi_monitor/gui.py
