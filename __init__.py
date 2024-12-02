@@ -10,11 +10,11 @@ class JackMidiMonitor:
 
 	def __init__(self, auto_connect=False):
 		self.client = jack.Client(self.__class__.__name__, no_start_server=True)
-		logging.debug('Connected as {}; samplerate {}; blocksize {}'.format(
+		logging.debug('Connected as %s; samplerate %s; blocksize %s',
 			self.__class__.__name__,
 			self.client.samplerate,
 			self.client.blocksize
-		))
+		)
 		self.port = self.client.midi_inports.register('input')
 		self.__callback = self.__noop
 		self.client.set_process_callback(self.__process)
@@ -27,7 +27,7 @@ class JackMidiMonitor:
 		for p in self.client.get_ports(is_output=True, is_midi=True):
 			if 'Through' in p.name:
 				continue
-			logging.debug(f"Connecting {p.name} to {self.port.name}");
+			logging.debug('Connecting %s to %s', p.name, self.port.name)
 			try:
 				self.port.connect(p.name)
 				break
