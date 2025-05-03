@@ -21,6 +21,7 @@ class MainWindow(QDialog):
 			uic.loadUi(os.path.join(my_dir, 'res', 'gui.ui'), self)
 		self.monitor = JackMidiMonitor()
 		self.monitor.on_midi_event(self.midi_event)
+		self.monitor.on_connect_event(self.connect_event)
 		self.__decoders = {
 			0x8: self.__note_off,
 			0x9: self.__note_on,
@@ -30,6 +31,13 @@ class MainWindow(QDialog):
 			0xD: self.__no_op,
 			0xE: self.__no_op
 		}
+
+	def connect_event(self, connected_port):
+		if connected_port is None:
+			self.l_client.setText('-')
+			self.__note_off(None, None, None)
+		else:
+			self.l_client.setText(f'{connected_port.name}')
 
 	def midi_event(self, last_frame_time, offset, status, val_1, val_2):
 		opcode = status >> 4
@@ -47,7 +55,6 @@ class MainWindow(QDialog):
 		self.l_note_name.setText('')
 		self.l_note_number.setText('')
 		self.l_velocity.setText('')
-
 
 	@pyqtSlot(QResizeEvent)
 	def resizeEvent(self, event):

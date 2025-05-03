@@ -56,7 +56,7 @@
    <item>
     <widget class="QLabel" name="l_client">
      <property name="text">
-      <string>system:midi_1</string>
+      <string>-</string>
      </property>
      <property name="textFormat">
       <enum>Qt::PlainText</enum>
