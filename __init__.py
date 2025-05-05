@@ -74,7 +74,7 @@ class JackMidiMonitor:
 				status, val_1 = struct.unpack('2B', indata)
 				self.__midi_evt_callback(self.client.last_frame_time, offset, status, val_1, None)
 			else:
-				logging.debug(len(indata))
+				logging.debug('Invalid MIDI message len: %d', len(indata))
 
 	def __noop(self, last_frame_time, offset, status, val_1, val_2):
 		pass
