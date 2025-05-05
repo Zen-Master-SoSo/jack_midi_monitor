@@ -66,9 +66,23 @@ class MainWindow(QDialog):
 		super().resizeEvent(event)
 
 
+def main():
+	from jack import JackError
+	from PyQt5.QtWidgets import QApplication
+	from qt_extras import DevilBox
+	app = QApplication([])
+	try:
+		window = MainWindow()
+	except JackError:
+		DevilBox('Could not connect to JACK server. Is it running?')
+		return 1
+	window.show()
+	return app.exec()
+
+
 if __name__ == "__main__":
-	from jack_midi_monitor import show_gui
-	show_gui()
+	import sys
+	sys.exit(main())
 
 
 #  end jack_midi_monitor/gui.py

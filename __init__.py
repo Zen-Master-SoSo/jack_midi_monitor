@@ -86,18 +86,9 @@ class JackMidiMonitor:
 		pass
 
 
-def show_gui():
-	import sys
-	from PyQt5.QtWidgets import QApplication
-	from jack_midi_monitor.gui import MainWindow
-	app = QApplication([])
-	window = MainWindow()
-	window.show()
-	sys.exit(app.exec())
-
-
 def main():
 	import argparse
+	from jack import JackError
 
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--auto-connect', '-a', action='store_true')
@@ -165,15 +156,22 @@ def main():
 		0xE: pitch_bend
 	}
 
-	with JackMidiMonitor(options.auto_connect) as mon:
-		mon.on_midi_event(print_hex if options.hex else print_pretty)
-		print('#' * 80)
-		print('press Return to quit')
-		print('#' * 80)
-		input()
+	try:
+		with JackMidiMonitor(options.auto_connect) as mon:
+			mon.on_midi_event(print_hex if options.hex else print_pretty)
+			print('#' * 80)
+			print('press Return to quit')
+			print('#' * 80)
+			input()
+		return 0
+	except JackError:
+		print('Could not connect to JACK server. Is it running?')
+		return 1
 
 
 if __name__ == "__main__":
-	main()
+	import sys
+	sys.exit(main())
+
 
 #  end jack_midi_monitor/__init__.py
