@@ -1,13 +1,32 @@
-#  jack_midi_monitor/gui.py
+#  jack_midi_monitor/jack_midi_monitor/gui.py
 #
-#  Copyright 2024 liyang <liyang@veronica>
+#  Copyright 2025 Leon Dionne <ldionne@dridesign.sh.cn>
 #
-import os
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+#  MA 02110-1301, USA.
+#
+"""
+Provides a Qt interface to see what's coming in from a Jack port.
+"""
+from os.path import dirname, abspath, join
 from PyQt5 import uic
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QResizeEvent
-from PyQt5.QtWidgets import QDialog
-from qt_extras import ShutUpQT
+from PyQt5.QtWidgets import QApplication, QDialog
+from qt_extras import DevilBox, ShutUpQT
+from jack import JackError
 from jack_midi_monitor import JackMidiMonitor
 from midi_notes import NOTE_NAMES
 
@@ -16,9 +35,8 @@ class MainWindow(QDialog):
 
 	def __init__(self):
 		super().__init__()
-		my_dir = os.path.split(os.path.abspath(__file__))[0]
 		with ShutUpQT():
-			uic.loadUi(os.path.join(my_dir, 'res', 'gui.ui'), self)
+			uic.loadUi(join(dirname(abspath(__file__)), 'res', 'gui.ui'), self)
 		self.monitor = JackMidiMonitor()
 		self.monitor.on_midi_event(self.midi_event)
 		self.monitor.on_connect_event(self.connect_event)
@@ -67,9 +85,6 @@ class MainWindow(QDialog):
 
 
 def main():
-	from jack import JackError
-	from PyQt5.QtWidgets import QApplication
-	from qt_extras import DevilBox
 	app = QApplication([])
 	try:
 		window = MainWindow()
@@ -85,4 +100,4 @@ if __name__ == "__main__":
 	sys.exit(main())
 
 
-#  end jack_midi_monitor/gui.py
+#  end jack_midi_monitor/jack_midi_monitor/gui.py

@@ -5,3 +5,6 @@ __pycache__
 temp
 temp.*
 debug.*
+TODO
+/venv
+/dist
