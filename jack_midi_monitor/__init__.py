@@ -24,7 +24,7 @@ Includes both a console and a Qt GUI version.
 import struct, logging
 from jack import Client as JackClient, OwnPort
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 
 class JackMidiMonitor:
