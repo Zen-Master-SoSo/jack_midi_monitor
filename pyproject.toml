@@ -11,7 +11,7 @@ classifiers = [
 	"Topic :: Utilities"
 ]
 dynamic = ["version", "description"]
-dependencies = ["JACK-Client", "midi_notes", "PyQt5", "soso_qt_extras"]
+dependencies = ["JACK-Client", "midi_notes", "PyQt5", "soso_qt_extras >= 1.1.0"]
 
 [project.scripts]
 jack-midi-monitor-cli = "jack_midi_monitor.__main__:main"
