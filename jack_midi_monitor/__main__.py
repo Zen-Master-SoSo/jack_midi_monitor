@@ -26,9 +26,9 @@ from jack_midi_monitor import JackMidiMonitor
 def main():
 
 	parser = argparse.ArgumentParser()
-	parser.add_argument('--auto-connect', '-a', action='store_true')
-	parser.add_argument('--hex', '-x', action='store_true')
-	parser.add_argument("--verbose", "-v", action="store_true", help="Show more detailed debug information")
+	parser.add_argument('--auto-connect', '-a', action = 'store_true')
+	parser.add_argument('--hex', '-x', action = 'store_true')
+	parser.add_argument("--verbose", "-v", action = "store_true", help = "Show more detailed debug information")
 	options = parser.parse_args()
 	logging.basicConfig(
 		level = logging.DEBUG if options.verbose else logging.ERROR,
@@ -37,49 +37,38 @@ def main():
 
 	def print_pretty(last_frame_time, offset, status, val_1, val_2):
 		if val_2 is None:
-			print(('%02X %02X    : ' % (status, val_1, val_2)), end='')
+			print(f'{status:02X} {val_1:02X}    : ', end = '')
 		else:
-			print(('%02X %02X %02X : ' % (status, val_1, val_2)), end='')
+			print(f'{status:02X} {val_1:02X} {val_2:02X} : ', end = '')
 		opcode = status >> 4
 		decoders[opcode](val_1, val_2)
 
 	def print_hex(last_frame_time, offset, status, val_1, val_2):
 		if val_2 is None:
-			print('%02X %02X' % (status, val_1, val_2))
+			print(f'{status:02X} {val_1:02X}')
 		else:
-			print('%02X %02X %02X' % (status, val_1, val_2))
+			print(f'{status:02X} {val_1:02X} {val_2:02X}')
 
 	def note_on(val_1, val_2):
-		print('ON      %-3s %-3d %-3d' % (
-			NOTE_NAMES[val_1],
-			val_1,
-			val_2
-		))
+		print(f'ON      {NOTE_NAMES[val_1]:-3s} {val_1:-3d} {val_2:-3d}')
 
 	def note_off(val_1, _):
-		print('OFF     %-3s %-3d' % (
-			NOTE_NAMES[val_1],
-			val_1
-		))
+		print(f'OFF     {NOTE_NAMES[val_1]:-3s} {val_1:-3d}')
 
 	def poly_pressure(val_1, val_2):
-		print('POLY    %-3s %d  pres %d' % (
-			NOTE_NAMES[val_1],
-			val_1,
-			val_2
-		))
+		print(f'POLY    {NOTE_NAMES[val_1]:-3s} {val_1:d}  pres {val_2:d}')
 
 	def control_change(val_1, val_2):
-		print('CC_%-3d %d' % (val_1, val_2))
+		print(f'CC_{val_1:-3d} {val_2:d}')
 
 	def program_change(val_1, _):
-		print('PROG    %d' % (val_1))
+		print(f'PROG    {val_1:d}')
 
 	def channel_pressure(val_1, _):
-		print('PRES    %d' % (val_1))
+		print(f'PRES    {val_1:d}')
 
 	def pitch_bend(val_1, val_2):
-		print('BEND    %d %d' % (val_1, val_2))
+		print(f'BEND    {val_1:d} {val_2:d}')
 
 	decoders = {
 		0x8: note_off,

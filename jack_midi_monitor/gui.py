@@ -27,8 +27,8 @@ from PyQt5.QtGui import QResizeEvent
 from PyQt5.QtWidgets import QApplication, QDialog
 from qt_extras import DevilBox, ShutUpQT
 from jack import JackError
-from jack_midi_monitor import JackMidiMonitor
 from midi_notes import NOTE_NAMES
+from jack_midi_monitor import JackMidiMonitor
 
 
 class MainWindow(QDialog):
@@ -64,12 +64,12 @@ class MainWindow(QDialog):
 	def __no_op(self, status, val_1, val_2):
 		pass
 
-	def __note_on(self, status, val_1, val_2):
+	def __note_on(self, _, val_1, val_2):
 		self.l_note_name.setText(NOTE_NAMES[val_1])
 		self.l_note_number.setText(str(val_1))
 		self.l_velocity.setText(str(val_2))
 
-	def __note_off(self, status, val_1, val_2):
+	def __note_off(self, *_):
 		self.l_note_name.setText('')
 		self.l_note_number.setText('')
 		self.l_velocity.setText('')

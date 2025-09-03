@@ -29,8 +29,8 @@ __version__ = "1.1.1"
 
 class JackMidiMonitor:
 
-	def __init__(self, auto_connect=False):
-		self.client = JackClient(self.__class__.__name__, no_start_server=True)
+	def __init__(self, auto_connect = False):
+		self.client = JackClient(self.__class__.__name__, no_start_server = True)
 		logging.debug('Connected as %s; samplerate %s; blocksize %s',
 			self.__class__.__name__,
 			self.client.samplerate,
@@ -47,7 +47,7 @@ class JackMidiMonitor:
 			self.auto_connect()
 
 	def auto_connect(self):
-		for p in self.client.get_ports(is_output=True, is_midi=True):
+		for p in self.client.get_ports(is_output = True, is_midi = True):
 			if 'Through' in p.name:
 				continue
 			logging.debug('Connecting %s to %s', p.name, self.port.name)
@@ -59,7 +59,6 @@ class JackMidiMonitor:
 
 	def port_connect_callback(self, a, b, connect):
 		if self.__connect_callback:
-			connected_port = None
 			if isinstance(a, OwnPort):
 				self.__connect_callback(b if connect else None)
 			elif isinstance(b, OwnPort):
@@ -85,7 +84,7 @@ class JackMidiMonitor:
 			raise Exception("Invalid callback")
 		self.__connect_callback = callback
 
-	def __process(self, frames):
+	def __process(self, _):
 		for offset, indata in self.port.incoming_midi_events():
 			if len(indata) == 3:
 				status, val_1, val_2 = struct.unpack('3B', indata)
